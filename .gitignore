@@ -1,1 +1,4 @@
 .idea
+*.iml
+web/node_modules
+bundle.js
