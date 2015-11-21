@@ -33,13 +33,15 @@ public class Discovery implements DiscoveryListener, ServiceDiscoveryListener {
     public static void main(String[] args) throws Exception {
         logger.debug("main !");
         Discovery discovery = new Discovery();
-        discovery.go();
+        discovery.go(null);
+        logger.info("Done !");
+        Thread.sleep(Long.MAX_VALUE);
     }
 
     public Discovery() {
     }
 
-    private void go() throws Exception {
+    public LookupCache go(ServiceDiscoveryListener listener) throws Exception {
         System.setProperty(net.jini.discovery.Constants.HOST_ADDRESS, "127.0.0.1");
 //        System.setProperty(SystemProperties.ENABLE_DYNAMIC_LOCATORS, "true");
         GenericExporter genericExporter = new GenericExporter(NIOConfiguration.create());
@@ -47,14 +49,13 @@ public class Discovery implements DiscoveryListener, ServiceDiscoveryListener {
         config.setEntry("net.jini.lookup.ServiceDiscoveryManager", "eventListenerExporter", genericExporter);
         ldm = new LookupDiscoveryManager(new String[]{"visibility"}, new LookupLocator[]{}, this, config);
         sdm = new ServiceDiscoveryManager(ldm, null, config);
-//        sdm.getDiscoveryManager().addDiscoveryListener(this);
-        cache = sdm.createLookupCache(null, null, this);
-
-        logger.info("Done !");
-        Thread.sleep(Long.MAX_VALUE);
-
+        cache = sdm.createLookupCache(null, null, listener == null ? this : listener);
+        return cache;
     }
 
+    public LookupCache getCache() {
+        return cache;
+    }
 
     @Override
     public void discovered(DiscoveryEvent e) {
@@ -68,19 +69,21 @@ public class Discovery implements DiscoveryListener, ServiceDiscoveryListener {
 
     @Override
     public void serviceAdded(ServiceDiscoveryEvent event) {
-        ServiceItem serviceItem = event.getPostEventServiceItem();
-        String cls = serviceItem.getService().getClass().getCanonicalName();
-        for (Entry entry : serviceItem.attributeSets) {
-            if (entry instanceof Name) {
-                logger.debug("service added name: {}, class: {}", ((Name) entry).name, cls);
-            }
-        }
+        logger.debug("serviceAdded {}", event);
 
-        if (serviceItem.getService() instanceof PUServiceBeanProxy) {
-            for (Entry entry : serviceItem.attributeSets) {
-                logger.debug("service attribute: {}", entry);
-            }
-        }
+//        ServiceItem serviceItem = event.getPostEventServiceItem();
+//        String cls = serviceItem.getService().getClass().getCanonicalName();
+//        for (Entry entry : serviceItem.attributeSets) {
+//            if (entry instanceof Name) {
+//                logger.debug("service added name: {}, class: {}", ((Name) entry).name, cls);
+//            }
+//        }
+//
+//        if (serviceItem.getService() instanceof PUServiceBeanProxy) {
+//            for (Entry entry : serviceItem.attributeSets) {
+//                logger.debug("service attribute: {}", entry);
+//            }
+//        }
     }
 
     @Override
@@ -91,6 +94,5 @@ public class Discovery implements DiscoveryListener, ServiceDiscoveryListener {
     @Override
     public void serviceChanged(ServiceDiscoveryEvent event) {
         logger.debug("service changed {}", event);
-
     }
 }
