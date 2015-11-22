@@ -13,11 +13,15 @@ ReactDOM.render(
 var VisibilityActions = require('./actions/VisibilityActions');
 
 jQuery.get("../api/discovery/all", function(data){
-    console.info("get got data: ", data);
-    Object.keys(data).forEach(function (key) {
-                                  VisibilityActions.created(data[key]);
+    var fireRandomEvents = data.fireRandomEvents;
+    VisibilityActions.setFireRandomEvents(fireRandomEvents)
+    var items = data.items;
+    Object.keys(items).forEach(function (key) {
+                                  VisibilityActions.created(items[key]);
                                 });
 });
+
+
 if (!!window.EventSource) {
   var source = new EventSource("../api/discovery/subscribe");
 
@@ -34,17 +38,18 @@ if (!!window.EventSource) {
   }, false);
 
    source.addEventListener("CREATED", function(e){
-      console.info("CREATED", e);
       VisibilityActions.created(JSON.parse(e.data))
    }, false);
    source.addEventListener("REMOVED", function(e){
-      console.info("REMOVED", e);
       VisibilityActions.removed(JSON.parse(e.data).id)
    }, false);
    source.addEventListener("UPDATED", function(e){
-      console.info("UPDATED", e);
       var item = JSON.parse(e.data);
       VisibilityActions.updated(item.id, item)
+   }, false);
+   source.addEventListener("GENERATE_RANDOM_EVENTS", function(e){
+      var item = JSON.parse(e.data);
+      VisibilityActions.setFireRandomEvents(item["GENERATE_RANDOM_EVENTS"])
    }, false);
 
   source.onmessage = function (event) {

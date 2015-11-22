@@ -33,7 +33,12 @@ var VisibilityActions = {
         actionType: VisibilityConstants.REMOVED,
         id: id
       });
-    },
+   },
+
+  setFireRandomEvents: function(fireRandomEvents){
+     AppDispatcher.dispatch({actionType : "setFireRandomEvents",  fireRandomEvents : fireRandomEvents
+     });
+  },
 }
 
 module.exports = VisibilityActions;

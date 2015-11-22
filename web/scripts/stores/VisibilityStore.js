@@ -5,30 +5,30 @@ var assign = require('object-assign');
 
 var CHANGE_EVENT = 'change';
 
-var _registrars = {};
+var _data = { registrars : {}, fireRandomEvents: false}
 
 
 function create(registrar) {
   var id = registrar.id;
-  _registrars[id] = {
-    id: id,
-    cls : registrar.cls,
-    name: registrar.name
-  };
+  _data.registrars[id] = registrar;
 }
 
 function update(id, updates) {
-  _registrars[id] = assign({}, _registrars[id], updates);
+  _data.registrars[id] = assign({}, _data.registrars[id], updates);
 }
 
 function destroy(id) {
-  delete _registrars[id];
+  delete _data.registrars[id];
+}
+
+function setFireRandomEvents(value){
+    _data.fireRandomEvents = value;
 }
 
 var VisibilityStore = assign({}, EventEmitter.prototype, {
 
   getAll: function() {
-    return _registrars;
+    return _data;
   },
 
   emitChange: function() {
@@ -61,6 +61,11 @@ AppDispatcher.register(function(action) {
 
     case VisibilityConstants.REMOVED:
       destroy(action.id);
+      VisibilityStore.emitChange();
+      break;
+
+    case "setFireRandomEvents":
+      setFireRandomEvents(action.fireRandomEvents);
       VisibilityStore.emitChange();
       break;
 
