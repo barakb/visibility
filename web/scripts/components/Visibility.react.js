@@ -17,7 +17,7 @@ function getVisibilityState() {
    var registrars = Object.keys(registrarsMap).map(function (key) {
                                             return registrarsMap[key];
                                           });
-   return {registrarsMap : registrarsMap, registrars: registrars, fireRandomEvents : fireRandomEvents, selected:{}}
+   return {registrarsMap : registrarsMap, registrars: registrars, fireRandomEvents : fireRandomEvents, selected:all.selectedRow}
 }
 
 
@@ -38,8 +38,9 @@ var VisibilityApp = React.createClass({
       render: function() {
         var that = this;
         function onRowSelect(row, isSelected){
-          that.state.selected = row;
-          that.setState(that.state);
+//          that.state.selected = row;
+//          that.setState(that.state);
+            VisibilityActions.rowSelected(row.id);
         }
 
         var selectRowProp = {
@@ -49,14 +50,17 @@ var VisibilityApp = React.createClass({
           onSelect: onRowSelect
         };
 
-          var buttonName = this.state.fireRandomEvents ? "FiringRandomEvents" : "Quite";
-          var onToggleFiringRandomEvents = function(){
-             global.jQuery.post("../api/discovery/toggleFiringRandomEvent", function(){
-               console.info("got back", arguments);
-             });
-          }
+//          var buttonName = this.state.fireRandomEvents ? "FiringRandomEvents" : "Quite";
+//          var onToggleFiringRandomEvents = function(){
+//             global.jQuery.post("../api/discovery/toggleFiringRandomEvent", function(){
+//               console.info("got back", arguments);
+//             });
+//          }
 //                <BootstrapTable data={this.state.registrars} height="462" pagination={true} selectRow={selectRowProp} search={true} columnFilter={true}>
 //                <Button name={buttonName} onClick={onToggleFiringRandomEvents}></Button>
+          function isExpanded(){
+            return true;
+          }
           return (
                 <div>
                 <BootstrapTable data={this.state.registrars} height="462" selectRow={selectRowProp} search={true}>
@@ -64,7 +68,7 @@ var VisibilityApp = React.createClass({
                     <TableHeaderColumn dataField="name" dataSort={true} width="250px">Name</TableHeaderColumn>
                     <TableHeaderColumn dataField="cls" dataSort={true}>Class</TableHeaderColumn>
                 </BootstrapTable>
-                <Inspector data={this.state.selected} />
+                <Inspector data={this.state.selected} isExpanded={isExpanded} />
                 </div>
           );
       },

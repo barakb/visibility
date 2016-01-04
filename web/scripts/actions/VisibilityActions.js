@@ -35,6 +35,13 @@ var VisibilityActions = {
       });
    },
 
+  rowSelected: function(id){
+      AppDispatcher.dispatch({
+        actionType: VisibilityConstants.ROW_SELECTED,
+        id: id
+      });
+  },
+
   setFireRandomEvents: function(fireRandomEvents){
      AppDispatcher.dispatch({actionType : "setFireRandomEvents",  fireRandomEvents : fireRandomEvents
      });

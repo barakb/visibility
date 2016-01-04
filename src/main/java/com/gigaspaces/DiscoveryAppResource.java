@@ -61,7 +61,7 @@ public class DiscoveryAppResource implements ServiceDiscoveryListener {
     public DiscoveryAppResource(@Context ServletContext servletContext) throws Exception {
         Discovery discovery = new Discovery();
         cache = discovery.go(this);
-        this.broadcaster = new SseBroadcaster(){
+        this.broadcaster = new SseBroadcaster() {
             @Override
             public void onException(ChunkedOutput<OutboundEvent> chunkedOutput, Exception exception) {
                 logger.error(exception.toString(), exception);
@@ -118,7 +118,7 @@ public class DiscoveryAppResource implements ServiceDiscoveryListener {
 //                        .mediaType(MediaType.TEXT_PLAIN_TYPE)
                         .data(String.class, value.toString())
                         .build();
-                logger.debug("broadcastMessage {} data {}" , event, event.getData());
+                logger.debug("broadcastMessage {} data {}", event, event.getData());
                 broadcaster.broadcast(event);
             } catch (Throwable ignored) {
                 logger.error("Invoking of broadcastMessage() failed due the [{}], type={}, value:{}", ignored.toString(), type, value, ignored);
@@ -129,22 +129,22 @@ public class DiscoveryAppResource implements ServiceDiscoveryListener {
 
     @POST
     @Path("toggleFiringRandomEvent")
-    public synchronized void toggleFiringRandomEvent(){
+    public synchronized void toggleFiringRandomEvent() {
         fireRandomEvents = !fireRandomEvents;
         JSONObject value = new JSONObject();
         try {
             value.put("GENERATE_RANDOM_EVENTS", fireRandomEvents);
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error(e.toString(), e);
         }
         broadcastMessage("GENERATE_RANDOM_EVENTS", value);
 
-        if(fireRandomEvents){
+        if (fireRandomEvents) {
             randomItems = new ArrayList<>();
             scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-            scheduledExecutorService.scheduleAtFixedRate((Runnable) this::doFireRundomEvent,100,  100, TimeUnit.MILLISECONDS);
-        }else{
-            if(scheduledExecutorService != null){
+            scheduledExecutorService.scheduleAtFixedRate((Runnable) this::doFireRundomEvent, 100, 100, TimeUnit.MILLISECONDS);
+        } else {
+            if (scheduledExecutorService != null) {
                 scheduledExecutorService.shutdownNow();
             }
             scheduledExecutorService = null;
@@ -156,18 +156,18 @@ public class DiscoveryAppResource implements ServiceDiscoveryListener {
     }
 
     private void doFireRundomEvent() {
-        if(1000 < randomItems.size()){
-            if(random.nextBoolean()){
+        if (1000 < randomItems.size()) {
+            if (random.nextBoolean()) {
                 doDeleteRandomItem();
-            }else{
+            } else {
                 doUpdateRandomItem();
             }
-        }else if(randomItems.size() == 0) {
+        } else if (randomItems.size() == 0) {
             doCreateRandomItem();
-        }else{
-            if(random.nextBoolean()){
+        } else {
+            if (random.nextBoolean()) {
                 doCreateRandomItem();
-            }else{
+            } else {
                 doUpdateRandomItem();
             }
         }
@@ -176,7 +176,7 @@ public class DiscoveryAppResource implements ServiceDiscoveryListener {
     private void doUpdateRandomItem() {
         int index = random.nextInt(randomItems.size());
         ServiceItem item = randomItems.get(index);
-        ((Name)item.attributeSets[0]).name = "updatedName_" + count.incrementAndGet();
+        ((Name) item.attributeSets[0]).name = "updatedName_" + count.incrementAndGet();
         serviceRemoved(new ServiceDiscoveryEvent(this, item, item));
     }
 
@@ -205,21 +205,26 @@ public class DiscoveryAppResource implements ServiceDiscoveryListener {
         res.put("attributes", attributes);
         for (Entry entry : item.attributeSets) {
             if (entry instanceof Name) {
-                res.put("name",  ((Name) entry).name);
-            }else{
-                for (Field field : entry.getClass().getFields()) {
-                    if(Modifier.isPublic(field.getModifiers())){
-                        if(Entry.class.isAssignableFrom(field.getType())){
-                            JSONObject jsob = new JSONObject();
-                            fill(jsob, (Entry)field.get(entry));
-                            attributes.put(field.getName(), jsob);
-                        }else {
-                            attributes.put(field.getName(), field.get(entry));
+                res.put("name", ((Name) entry).name);
+            }
+            JSONObject entryJSON = new JSONObject();
+            attributes.put(entry.getClass().getName(), entryJSON);
+            for (Field field : entry.getClass().getFields()) {
+                if (Modifier.isPublic(field.getModifiers())) {
+                    if (Entry.class.isAssignableFrom(field.getType())) {
+                        JSONObject jsob = new JSONObject();
+                        fill(jsob, (Entry) field.get(entry));
+                        entryJSON.put(field.getName(), jsob);
+                    } else {
+                        try {
+                            entryJSON.put(field.getName(), field.get(entry));
+                        } catch (Exception e) {
+                            logger.info("ignore {} {} item is {} ", field.getName(), field.get(entry), item);
                         }
                     }
                 }
-                attributes.put(entry.getClass().getCanonicalName(), entry.toString());
             }
+            //attributes.put(entry.getClass().getCanonicalName(), entry.toString());
         }
         return res;
     }
@@ -227,12 +232,12 @@ public class DiscoveryAppResource implements ServiceDiscoveryListener {
     private void fill(JSONObject jsob, Entry entry) throws JSONException, IllegalAccessException {
         jsob.put("_type", entry.getClass().getCanonicalName());
         for (Field field : entry.getClass().getFields()) {
-            if(Modifier.isPublic(field.getModifiers())){
-                if(Entry.class.isAssignableFrom(field.getType())){
+            if (Modifier.isPublic(field.getModifiers())) {
+                if (Entry.class.isAssignableFrom(field.getType())) {
                     JSONObject rec = new JSONObject();
-                    fill(rec, (Entry)field.get(entry));
+                    fill(rec, (Entry) field.get(entry));
                     jsob.put(field.getName(), rec);
-                }else {
+                } else {
                     jsob.put(field.getName(), field.get(entry));
                 }
             }

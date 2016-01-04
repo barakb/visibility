@@ -5,7 +5,7 @@ var assign = require('object-assign');
 
 var CHANGE_EVENT = 'change';
 
-var _data = { registrars : {}, fireRandomEvents: false}
+var _data = { registrars : {}, fireRandomEvents: false, selectedRow: {}, selectedId: null}
 
 
 function create(registrar) {
@@ -15,15 +15,34 @@ function create(registrar) {
 
 function update(id, updates) {
   _data.registrars[id] = assign({}, _data.registrars[id], updates);
+  updateSelectedRow();
 }
 
 function destroy(id) {
   delete _data.registrars[id];
+  updateSelectedRow();
+}
+
+function select(id){
+    _data.selectedId = id;
+    updateSelectedRow();
+}
+
+function updateSelectedRow(){
+    if (_data.selectedId){
+        _data.selectedRow = _data.registrars[_data.selectedId];
+    }else{
+        _data.selectedRow = {}
+    }
+    if(!_data.selectedRow){
+        _data.selectedId = null;
+    }
 }
 
 function setFireRandomEvents(value){
     _data.fireRandomEvents = value;
 }
+
 
 var VisibilityStore = assign({}, EventEmitter.prototype, {
 
@@ -69,6 +88,10 @@ AppDispatcher.register(function(action) {
       VisibilityStore.emitChange();
       break;
 
+    case VisibilityConstants.ROW_SELECTED:
+      select(action.id);
+      VisibilityStore.emitChange();
+      break;
     default:
          // no op
     }

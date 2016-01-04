@@ -4,8 +4,6 @@ import com.gigaspaces.config.lrmi.nio.NIOConfiguration;
 import com.gigaspaces.lrmi.GenericExporter;
 import net.jini.config.PlainConfiguration;
 import net.jini.core.discovery.LookupLocator;
-import net.jini.core.entry.Entry;
-import net.jini.core.lookup.ServiceItem;
 import net.jini.discovery.DiscoveryEvent;
 import net.jini.discovery.DiscoveryListener;
 import net.jini.discovery.LookupDiscoveryManager;
@@ -13,8 +11,6 @@ import net.jini.lookup.LookupCache;
 import net.jini.lookup.ServiceDiscoveryEvent;
 import net.jini.lookup.ServiceDiscoveryListener;
 import net.jini.lookup.ServiceDiscoveryManager;
-import net.jini.lookup.entry.Name;
-import org.openspaces.pu.container.servicegrid.PUServiceBeanProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +43,7 @@ public class Discovery implements DiscoveryListener, ServiceDiscoveryListener {
         GenericExporter genericExporter = new GenericExporter(NIOConfiguration.create());
         PlainConfiguration config = new PlainConfiguration();
         config.setEntry("net.jini.lookup.ServiceDiscoveryManager", "eventListenerExporter", genericExporter);
-        ldm = new LookupDiscoveryManager(new String[]{"visibility"}, new LookupLocator[]{}, this, config);
+        ldm = new LookupDiscoveryManager(new String[]{"barak"}, new LookupLocator[]{}, this, config);
         sdm = new ServiceDiscoveryManager(ldm, null, config);
         cache = sdm.createLookupCache(null, null, listener == null ? this : listener);
         return cache;
